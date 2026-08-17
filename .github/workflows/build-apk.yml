@@ -185,8 +185,6 @@ jobs:
                   ws.setAllowUniversalAccessFromFileURLs(true);
                   ws.setAllowFileAccessFromFileURLs(true);
                   ws.setMediaPlaybackRequiresUserGesture(false);
-                  ws.setLoadWithOverviewMode(true);
-                  ws.setUseWideViewPort(true);
                   ws.setCacheMode(WebSettings.LOAD_DEFAULT);
 
                   webView.setWebViewClient(new WebViewClient());
@@ -226,11 +224,17 @@ jobs:
 
               @Override
               public void onBackPressed() {
-                  if (webView != null && webView.canGoBack()) {
-                      webView.goBack();
-                  } else {
-                      super.onBackPressed();
+                  if (webView != null) {
+                      if (webView.evaluateJavascript("(typeof zlPhotoViewerOpen==='function') && zlPhotoViewerOpen()", null) == Boolean.TRUE) {
+                          webView.evaluateJavascript("zlClosePhotoViewer()", null);
+                          return;
+                      }
+                      if (webView.canGoBack()) {
+                          webView.goBack();
+                          return;
+                      }
                   }
+                  super.onBackPressed();
               }
           }
           EOF

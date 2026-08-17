@@ -1510,11 +1510,13 @@ function zlOpenPhotoViewer(src) {
   const v = document.getElementById('zlPhotoViewer');
   document.getElementById('zlPhotoViewerImg').src = src;
   v.classList.add('show');
+  if (window.AppBridge && AppBridge.setPhotoViewerOpen) AppBridge.setPhotoViewerOpen(true);
 }
 function zlClosePhotoViewer() {
   const v = document.getElementById('zlPhotoViewer');
   v.classList.remove('show');
   document.getElementById('zlPhotoViewerImg').src = '';
+  if (window.AppBridge && AppBridge.setPhotoViewerOpen) AppBridge.setPhotoViewerOpen(false);
 }
 function zlPhotoViewerOpen() { return document.getElementById('zlPhotoViewer').classList.contains('show'); }
 (function () {

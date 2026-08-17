@@ -165,6 +165,8 @@ jobs:
           import android.os.Bundle;
           import android.provider.MediaStore;
           import android.webkit.JavascriptInterface;
+          import android.webkit.JsPromptResult;
+          import android.webkit.JsResult;
           import android.webkit.ValueCallback;
           import android.webkit.WebChromeClient;
           import android.webkit.WebSettings;

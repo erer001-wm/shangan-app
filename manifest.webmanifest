@@ -1,0 +1,16 @@
+{
+  "name": "陈陈陈必上岸·专属备考工作台",
+  "short_name": "备考工作台",
+  "description": "错题本与资料分析备考工作台",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FADCE4",
+  "theme_color": "#E0301E",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

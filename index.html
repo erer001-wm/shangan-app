@@ -1378,6 +1378,7 @@ function calConfirm() {
   const dur = store.get('study_duration', {});
   dur[ds] = (dur[ds] || 0) + mins;   // 叠加：重复打卡累加当日时长，不覆盖
   store.set('study_duration', dur);
+  if (pageRenderers.home) pageRenderers.home();   // 同步刷新首页连续打卡计数
   renderCal();
 }
 function calCancel() {
@@ -1388,6 +1389,7 @@ function calCancel() {
   const dur = store.get('study_duration', {});
   delete dur[ds];
   store.set('study_duration', dur);
+  if (pageRenderers.home) pageRenderers.home();   // 同步刷新首页连续打卡计数
   renderCal();
 }
 pageRenderers.calendar = renderCal;

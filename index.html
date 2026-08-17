@@ -4,19 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>陈陈陈必上岸｜专属备考工作台</title>
+  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#E0301E">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="备考工作台">
-  <script>
-    if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
-      window.addEventListener('load', function () {
-        navigator.serviceWorker.register('./sw.js').catch(function () {});
-      });
-    }
-  </script>
 <style>
 /* ========== 全局规范 ========== */
 :root {
@@ -496,7 +489,31 @@ textarea.input { resize: vertical; min-height: 80px; }
   padding: 14px 24px; border-top: 1px solid #F7EBEF;
   display: flex; justify-content: flex-end; gap: 12px;
 }
-.form-row { margin-bottom: 14px; }
+
+/* ========== 图片放大查看器 ========== */
+.zl-photo-viewer {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(20, 12, 16, .92);
+  display: none; align-items: center; justify-content: center;
+  flex-direction: column; padding: 16px;
+}
+.zl-photo-viewer.show { display: flex; }
+.zl-photo-viewer img {
+  max-width: 100%; max-height: 82vh; display: block;
+  border-radius: 8px; object-fit: contain;
+}
+.zl-photo-close {
+  position: absolute; top: 14px; right: 14px;
+  width: 44px; height: 44px; border-radius: 50%;
+  border: none; background: rgba(255,255,255,.9); color: #5A3A44;
+  font-size: 22px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,.3);
+}
+.zl-photo-tip {
+  position: absolute; bottom: 18px; left: 0; right: 0;
+  text-align: center; color: rgba(255,255,255,.8); font-size: 13px;
+}
 .form-row label { display: block; font-size: 13px; color: var(--text-sub); margin-bottom: 6px; }
 .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
@@ -602,6 +619,11 @@ textarea.input { resize: vertical; min-height: 80px; }
 </style>
 </head>
 <body>
+<div class="zl-photo-viewer" id="zlPhotoViewer">
+  <button class="zl-photo-close" onclick="zlClosePhotoViewer()">✕</button>
+  <img id="zlPhotoViewerImg" alt="错题照片放大" src="">
+  <div class="zl-photo-tip">点击空白处或按返回键关闭</div>
+</div>
 <div class="app">
 
   <!-- ===== 左侧导航 ===== -->
@@ -1482,9 +1504,23 @@ function zlZoomPhoto(pid) {
   const pd = zlGetPhotoData();
   const p = pd.photos.find(x => x.id === pid);
   if (!p) return;
-  const w = window.open('', '_blank');
-  if (w) { w.document.write('<title>错题照片</title><img src="' + p.data + '" style="max-width:100%;display:block;margin:0 auto">'); }
+  zlOpenPhotoViewer(p.data);
 }
+function zlOpenPhotoViewer(src) {
+  const v = document.getElementById('zlPhotoViewer');
+  document.getElementById('zlPhotoViewerImg').src = src;
+  v.classList.add('show');
+}
+function zlClosePhotoViewer() {
+  const v = document.getElementById('zlPhotoViewer');
+  v.classList.remove('show');
+  document.getElementById('zlPhotoViewerImg').src = '';
+}
+function zlPhotoViewerOpen() { return document.getElementById('zlPhotoViewer').classList.contains('show'); }
+(function () {
+  const v = document.getElementById('zlPhotoViewer');
+  v.addEventListener('click', function (e) { if (e.target === v || e.target.id === 'zlPhotoViewerImg') zlClosePhotoViewer(); });
+})();
 function zlSetGroup(gid) {
   const pd = zlGetPhotoData();
   if (pd.groups.some(g => g.id === gid)) { pd.active = gid; zlSavePhotoData(pd); renderZiliao(); }
@@ -1743,8 +1779,7 @@ function buildCardModule(prefix, cfg) {
     const pd = getPhotoData(key);
     const p = pd.photos.find(x => x.id === pid);
     if (!p) return;
-    const w = window.open('', '_blank');
-    if (w) { w.document.write('<title>错题照片</title><img src="' + p.data + '" style="max-width:100%;display:block;margin:0 auto">'); }
+    zlOpenPhotoViewer(p.data);
   };
   window[FN.setGroup] = function (key, gid) {
     const pd = getPhotoData(key);
@@ -1971,8 +2006,7 @@ window.shishiPhoto = function (input) {
 window.shishiDelPhoto = function (gid, pid) { const pd = shishiPhotoData(); pd.photos = pd.photos.filter(p => p.id !== pid); shishiSavePhoto(pd); renderShishi(); };
 window.shishiZoom = function (pid) {
   const pd = shishiPhotoData(); const p = pd.photos.find(x => x.id === pid);
-  if (!p) return; const w = window.open('', '_blank');
-  if (w) { w.document.write('<title>错题照片</title><img src="' + p.data + '" style="max-width:100%;display:block;margin:0 auto">'); }
+  if (!p) return; zlOpenPhotoViewer(p.data);
 };
 window.shishiSetGroup = function (gid) { const pd = shishiPhotoData(); if (pd.groups.some(g => g.id === gid)) { pd.active = gid; shishiSavePhoto(pd); renderShishi(); } };
 window.shishiAddGroup = function () { const name = prompt('输入新分组名称：'); if (!name) return; const pd = shishiPhotoData(); const id = 'g' + Date.now(); pd.groups.push({ id, name }); pd.active = id; shishiSavePhoto(pd); renderShishi(); };
@@ -2805,7 +2839,12 @@ document.getElementById('page-cloud').addEventListener('change', (e) => {
 /* 初始化：恢复上次页面，默认首页总览 */
 switchPage(store.get('current_page', 'home'));
 
-/* 托管版（Gitee Pages）以单文件形态部署，不启用 Service Worker，避免子路径作用域问题 */
+/* PWA：注册 Service Worker，使应用可离线、可“安装到主屏幕” */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
 </script>
 </body>
 </html>

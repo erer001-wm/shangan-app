@@ -38,7 +38,9 @@ jobs:
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Copy index.html into app assets
-        run: cp index.html android/app/src/main/assets/index.html
+        run: |
+          mkdir -p android/app/src/main/assets
+          cp index.html android/app/src/main/assets/index.html
 
       - name: Build Debug APK
         run: |

@@ -44,6 +44,7 @@ jobs:
           mkdir -p android/app/src/main/java/com/beikao/app
           mkdir -p android/app/src/main/res/values
           mkdir -p android/app/src/main/res/drawable
+          mkdir -p android/app/src/main/res/xml
 
           cat > android/settings.gradle << 'EOF'
           pluginManagement {
@@ -112,7 +113,14 @@ jobs:
           }
 
           dependencies {
+              implementation 'androidx.core:core:1.12.0'
           }
+          EOF
+
+          cat > android/gradle.properties << 'EOF'
+          android.useAndroidX=true
+          android.enableJetifier=true
+          org.gradle.jvmargs=-Xmx2048m
           EOF
 
           cat > android/app/src/main/AndroidManifest.xml << 'EOF'
@@ -149,6 +157,16 @@ jobs:
                           <category android:name="android.intent.category.LAUNCHER" />
                       </intent-filter>
                   </activity>
+
+                  <provider
+                      android:name="androidx.core.content.FileProvider"
+                      android:authorities="com.beikao.app.fileprovider"
+                      android:exported="false"
+                      android:grantUriPermissions="true">
+                      <meta-data
+                          android:name="android.support.FILE_PROVIDER_PATHS"
+                          android:resource="@xml/file_paths" />
+                  </provider>
               </application>
           </manifest>
           EOF
@@ -173,6 +191,8 @@ jobs:
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
           import android.widget.EditText;
+          import androidx.core.content.FileProvider;
+          import android.os.Environment;
 
           import java.io.File;
           import java.io.FileOutputStream;
@@ -291,17 +311,12 @@ jobs:
               }
 
               private void openCamera() {
-                  Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                  if (cameraIntent.resolveActivity(getPackageManager()) == null) {
-                      openGallery();
-                      return;
-                  }
                   try {
-                      ContentValues values = new ContentValues();
-                      values.put(MediaStore.Images.Media.DISPLAY_NAME, "beikao_" + System.currentTimeMillis() + ".jpg");
-                      values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-                      cameraOutputUri = getContentResolver().insert(
-                              MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                      File picsDir = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "beikao");
+                      if (!picsDir.exists()) picsDir.mkdirs();
+                      File photoFile = new File(picsDir, "beikao_" + System.currentTimeMillis() + ".jpg");
+                      cameraOutputUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", photoFile);
+                      Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                       cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, cameraOutputUri);
                       cameraIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                       startActivityForResult(cameraIntent, FILE_CHOOSER_CODE);
@@ -410,6 +425,13 @@ jobs:
                   <item name="android:navigationBarColor">#FFFFFF</item>
               </style>
           </resources>
+          EOF
+
+          cat > android/app/src/main/res/xml/file_paths.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <paths>
+              <external-files-path name="beikao_pics" path="Pictures" />
+          </paths>
           EOF
 
           cat > android/app/src/main/res/drawable/ic_launcher.xml << 'EOF'
